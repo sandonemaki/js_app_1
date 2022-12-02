@@ -1,32 +1,45 @@
-function fetchUserInfo(userId) {
-  fetch(`https://api.github.com/users/${encodeURIComponent(userId)}`)
-    .then(response => {
-      console.log(response.status);
-      // エラーレスポンスが返されたことを検知する
-      if (!response.ok) {
-        console.error("エラーレスポンス", response);
-      } else {
-        return response.json().then(userInfo => {
-          // HTMLの組み立て
-          const view = escapeHTML`
-          <h4>${userInfo.name} (@${userInfo.login})</h4>
-          <img src="${userInfo.avatar_url}" alt="${userInfo.login}" height="100">
-            <dl>
-              <dt>Location</dt>
-              <dd>${userInfo.location}</dd>
-              <dt>Repositories</dt>
-              <dd>${userInfo.public_repos}</dd>
-            </dl>
-          `;
-          // HTMLの挿入
-          const result = document.getElementById("result")
-          result.innerHTML = view;
-          // console.log(userInfo);
-        });
-      }
-    }).catch(error => {
-      console.error(error);
+function main() {
+  fetchUserInfo("js-primer-example")
+  // ここではJSONオブジェクトで解決されるPromise
+  .then((userInfo) => createView(userInfo))
+  // ここではHTML文字列で解決されるPromise
+  .then((view) => displayView(view))
+  // promiseチェーンの中で発生したエラーを受け取る
+  .catch((error) => {
+      console.error(`エラーが発生しました(${error})`);
     });
+}
+
+function fetchUserInfo(userId) {
+  // fetchの返り値のPromiseをreturnする
+  return fetch(`https://api.github.com/users/${encodeURIComponent(userId)}`)
+    .then(response => {
+      if (!response.ok) {
+        // エラーレスポンスからRejectedなPromiseを作成して返す
+        return Promise.reject(new Error(`${response.status}: ${response.statusText}`));
+      } else {
+        return response.json();
+      }
+    });
+}
+
+function createView(userInfo) {
+  return escapeHTML`
+  <h4>${userInfo.name} (@${userInfo.login})</h4>
+  <img src="${userInfo.avatar_url}" alt="${userInfo.login}" height="100">
+    <dl>
+      <dt>Location</dt>
+      <dd>${userInfo.location}</dd>
+      <dt>Repositories</dt>
+      <dd>${userInfo.public_repos}</dd>
+    </dl>
+    `;
+}
+
+function displayView(view) {
+  const result = document.getElementById("result")
+  result.innerHTML = view;
+  // console.log(userInfo);
 }
 
 function escapeSpecialChars(str) {
