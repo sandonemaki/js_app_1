@@ -1,6 +1,7 @@
 async function main() {
   try {
-    const userInfo = await fetchUserInfo("js-primer-example");
+    const userId = getUserId();
+    const userInfo = await fetchUserInfo(userId);
     // ここではJSONオブジェクトで解決されるPromise
     const view = createView(userInfo);
     // ここではHTML文字列で解決されるPromise
@@ -22,6 +23,10 @@ function fetchUserInfo(userId) {
         return response.json();
       }
     });
+}
+
+function getUserId() {
+  return document.getElementById("userId").value;
 }
 
 function createView(userInfo) {
